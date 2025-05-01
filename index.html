@@ -288,14 +288,14 @@
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
 
-            // Maximum dimensions
-            const MAX_WIDTH = 1200;
-            const MAX_HEIGHT = 1200;
+            // Maximum dimensions - reduced for smaller file size
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
 
             let width = img.width;
             let height = img.height;
 
-            // Resize logic
+            // Resize logic - ensuring we're well below the maximum
             if (width > height) {
               if (width > MAX_WIDTH) {
                 height *= MAX_WIDTH / width;
@@ -315,18 +315,41 @@
             // Draw image on canvas
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Get image data URL (JPEG for smaller size)
-            const imageData = canvas.toDataURL("image/jpeg", 0.85);
-            originalImageData = imageData;
+            // Try multiple compression levels if needed
+            let imageData;
+            let compressionLevel = 0.6; // Start with higher compression (lower quality)
+            let urlTooLong = true;
+            let attempts = 0;
+            const maxAttempts = 3;
 
-            // Create URL with image data
-            const baseUrl = window.location.href.split("?")[0];
-            const imageUrl = `${baseUrl}?img=${encodeURIComponent(imageData)}`;
+            while (urlTooLong && attempts < maxAttempts) {
+              // Get image data URL with increasing compression
+              imageData = canvas.toDataURL("image/jpeg", compressionLevel);
 
-            // If URL is too long, show error
-            if (imageUrl.length > 2000) {
+              // Create URL with image data
+              const baseUrl = window.location.href.split("?")[0];
+              const imageUrl = `${baseUrl}?img=${encodeURIComponent(
+                imageData
+              )}`;
+
+              // Check if URL is acceptable length
+              if (imageUrl.length <= 8000) {
+                urlTooLong = false;
+                originalImageData = imageData;
+
+                // Update browser URL
+                window.history.replaceState({}, document.title, imageUrl);
+              } else {
+                // Increase compression for next attempt
+                compressionLevel = compressionLevel * 0.7;
+                attempts++;
+              }
+            }
+
+            // If all attempts failed, show error
+            if (urlTooLong) {
               showStatus(
-                "Image is too large. Please choose a smaller image.",
+                "Image is still too large. Please choose a smaller image or take a lower resolution photo.",
                 true
               );
               return;
