@@ -1,76 +1,135 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QR Photo Upload</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
+    <title>Farm Welcome Page</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f3f7df;
+        font-family: "Lexend", sans-serif;
+        font-size: 98px;
+        display: flex;
+        letter-spacing: 15px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .welcome-container {
+        position: relative;
+        text-align: center;
+        margin-bottom: -250px;
+        width: 100%;
+      }
+      .welcome-text {
+        font-size: 12rem;
+        font-family: "Lexend", sans-serif;
+        font-weight: bold;
+        color: #4d8a3d;
+        letter-spacing: 10px;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        opacity: 1;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      .fade-out {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      .fade-in {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .farm-image {
+        width: 750px;
+        max-width: 90%;
+        height: auto;
+        position: fixed;
+        transform: none !important;
+        border-radius: 10px;
+        z-index: 2;
+        position: relative;
+      }
+      .get-started-btn {
+        position: relative;
+        margin-top: 50px;
+        padding: 15px 40px;
+        font-size: 2rem;
+        font-family: "Lexend", sans-serif;
+        font-weight: bold;
+        background-color: #4d8a3d;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        letter-spacing: 3px;
+        transition: all 0.3s ease;
+        z-index: 3;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .get-started-btn:hover {
+        background-color: #3c6a30;
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+      .get-started-btn:active {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+      }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <h1>QR Photo Upload</h1>
-
-      <div class="qr-section">
-        <h2>Scan this QR code with your phone</h2>
-        <div class="qr-code">
-          <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" />
-        </div>
-        <p>Scan to open the upload page on your phone</p>
-      </div>
-
-      <div class="image-section">
-        <h2>Latest Uploaded Photo</h2>
-        <div id="latest-image-container">
-          {% if latest_image %}
-          <img src="{{ latest_image }}" alt="Latest uploaded photo" />
-          {% else %}
-          <p>
-            No photo uploaded yet. Scan the QR code with your phone to upload a
-            photo.
-          </p>
-          {% endif %}
-        </div>
-      </div>
+    <div class="welcome-container">
+      <div class="welcome-text" id="welcome-text">WELCOME</div>
     </div>
+    <img
+      src="static/images/welcome_drone.png"
+      alt="Farm Scene"
+      class="farm-image"
+    />
+    <button class="get-started-btn" id="get-started-btn">GET STARTED</button>
 
     <script>
-      // Poll the server every 2 seconds to check for new images
-      setInterval(function () {
-        fetch("/check-for-new-image")
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.image_url) {
-              const container = document.getElementById(
-                "latest-image-container"
-              );
-              // Add a timestamp to the URL to prevent caching
-              const timestamp = new Date().getTime();
-              const imageUrl = data.image_url + "?t=" + timestamp;
+      const words = [
+        "WELCOME", // English
+        "स्वागत", // Hindi
+        "CIAO", // Italian
+        "BONJOUR", // French
+        "欢迎", // Chinese (Simplified)
+        "ようこそ", // Japanese
+        "HALLO", // German
+        "환영합니다", // Korean
+        "أهلا بك", // Arabic
+      ];
 
-              // Check if there's already an image and it's different
-              const existingImg = container.querySelector("img");
-              if (
-                !existingImg ||
-                !existingImg.src.includes(data.image_url.split("?")[0])
-              ) {
-                // Clear the container
-                container.innerHTML = "";
-                // Create new image
-                const img = document.createElement("img");
-                img.src = imageUrl;
-                img.alt = "Latest uploaded photo";
-                container.appendChild(img);
-              }
-            }
-          })
-          .catch((error) =>
-            console.error("Error checking for new images:", error)
-          );
-      }, 2000);
+      let index = 0;
+      const welcomeText = document.getElementById("welcome-text");
+      const getStartedBtn = document.getElementById("get-started-btn");
+
+      // Make language changes faster (2 seconds instead of 3.35 seconds)
+      setInterval(() => {
+        welcomeText.classList.remove("fade-in");
+        welcomeText.classList.add("fade-out");
+
+        setTimeout(() => {
+          index = (index + 1) % words.length;
+          welcomeText.textContent = words[index];
+
+          welcomeText.classList.remove("fade-out");
+          welcomeText.classList.add("fade-in");
+        }, 700); // Faster fade transition (600ms instead of 1000ms)
+      }, 2500); // Faster interval (2 seconds instead of 3.35 seconds)
+
+      // Add event listener for the Get Started button
+      getStartedBtn.addEventListener("click", function () {
+        // Link to the QR code page (qr_upload.html)
+        window.location.href = "/qr_upload";
+      });
     </script>
   </body>
 </html>

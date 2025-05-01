@@ -1,81 +1,74 @@
+# Add these routes to your Flask app.py file
+
+import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
-import os
 import time
-import qrcode
-from base64 import b64encode
-from io import BytesIO
+
+# Configure upload folder
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Create upload folder if it doesn't exist
+# Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Track the latest uploaded image
+# Global variable to track the latest uploaded image
 latest_image = None
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/')
-def index():
-    """Main page showing the QR code and latest uploaded image"""
-    # Generate QR code for the upload page
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    
-    # Get the server's IP and port
-    # Note: In production, you'd use your actual domain here
-    upload_url = request.host_url + "upload"
-    qr.add_data(upload_url)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffer = BytesIO()
-    img.save(buffer)
-    qr_image = b64encode(buffer.getvalue()).decode('utf-8')
-    
-    return render_template('index.html', qr_code=qr_image, latest_image=latest_image)
+def dashboard():
+    """Main dashboard page"""
+    return render_template('index.html', latest_image=latest_image)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
-    """Handle file uploads from the mobile device"""
+    """Handle file uploads"""
     global latest_image
     
     if request.method == 'POST':
         # Check if the post request has the file part
-        if 'photo' not in request.files:
+        if 'file' not in request.files:
             return jsonify({'error': 'No file part'}), 400
             
-        file = request.files['photo']
+        file = request.files['file']
         
         # If user does not select file, browser also
         # submits an empty part without filename
         if file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
             
-        if file:
+        if file and allowed_file(file.filename):
             # Create unique filename to avoid cache issues
             filename = secure_filename(file.filename)
             timestamp = str(int(time.time()))
             unique_filename = f"{timestamp}_{filename}"
             
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
             
             # Update latest image path
-            latest_image = url_for('static', filename=f'uploads/{unique_filename}')
+            latest_image = f'/static/uploads/{unique_filename}'
             
             # Return success for API calls
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'success': True, 'image_url': latest_image})
+                return jsonify({
+                    'success': True, 
+                    'image_url': latest_image,
+                    'redirect': url_for('upload_success')
+                })
             
-            # For regular form submissions, redirect to the upload success page
+            # For regular form submissions, redirect to the success page
             return redirect(url_for('upload_success'))
     
-    # If GET request, show the upload form
+    # If GET request, show the upload form (if you have a separate page for this)
     return render_template('upload.html')
 
 @app.route('/upload-success')
@@ -89,4 +82,4 @@ def check_for_new_image():
     return jsonify({'image_url': latest_image})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=5000)
