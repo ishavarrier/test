@@ -1,174 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QR Code Photo Uploader</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .qr-section {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        #qrcode {
-            margin: 20px auto;
-        }
-        
-        .upload-section {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        #photoInput {
-            display: none;
-        }
-        
-        .upload-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            width: 100%;
-        }
-        
-        .photo-container {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .photo {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .qr-section {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      #qrcode {
+        margin: 20px auto;
+      }
+
+      .upload-section {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      #photoInput {
+        display: none;
+      }
+
+      .upload-btn {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        width: 100%;
+      }
+
+      .photo-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .photo {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+
+      .status.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .status.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+      }
+
+      #refreshButton {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 16px;
+        margin-bottom: 20px;
+      }
+
+      .session-id {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 20px;
+      }
     </style>
     <!-- Include the QR code library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-</head>
-<body>
+    <!-- Include Firebase -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.js"></script>
+  </head>
+  <body>
     <div class="container">
-        <h1>QR Code Photo Uploader</h1>
-        
-        <div class="qr-section">
-            <h2>Scan this QR code</h2>
-            <p>Use your phone to scan this QR code to access this page and upload photos</p>
-            <div id="qrcode"></div>
-        </div>
-        
-        <div class="upload-section">
-            <h2>Upload a Photo</h2>
-            <input type="file" id="photoInput" accept="image/*" capture="camera">
-            <button class="upload-btn" onclick="document.getElementById('photoInput').click()">
-                Select Photo
-            </button>
-        </div>
-        
-        <h2>Photo Gallery</h2>
-        <div id="gallery" class="gallery">
-            <!-- Photos will be added here -->
-        </div>
+      <h1>QR Code Photo Uploader</h1>
+
+      <div class="qr-section">
+        <h2>Scan this QR code</h2>
+        <p>
+          Use your phone to scan this QR code to access this page and upload
+          photos
+        </p>
+        <div id="qrcode"></div>
+        <p class="session-id">Session ID: <span id="sessionId"></span></p>
+      </div>
+
+      <div id="statusMessage" class="status" style="display: none"></div>
+
+      <div class="upload-section">
+        <h2>Upload a Photo</h2>
+        <input type="file" id="photoInput" accept="image/*" capture="camera" />
+        <button
+          class="upload-btn"
+          onclick="document.getElementById('photoInput').click()"
+        >
+          Select Photo
+        </button>
+      </div>
+
+      <button id="refreshButton" onclick="loadPhotos()">Refresh Gallery</button>
+
+      <h2>Photo Gallery</h2>
+      <div id="gallery" class="gallery">
+        <div class="loading">Loading photos...</div>
+      </div>
     </div>
 
     <script>
-        // Generate QR code pointing to the current page URL
-        window.onload = function() {
-            new QRCode(document.getElementById("qrcode"), {
-                text: window.location.href,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+      // Generate a unique session ID if one doesn't exist
+      let sessionId = localStorage.getItem("photoSessionId");
+      if (!sessionId) {
+        sessionId = "session_" + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem("photoSessionId", sessionId);
+      }
+      document.getElementById("sessionId").textContent = sessionId;
 
-            // Load any saved photos from localStorage
-            loadPhotos();
-        };
+      // Initialize Firebase (replace with your own Firebase config)
+      // NOTE: You will need to create a Firebase project and replace these values
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+      };
 
-        // Handle file uploads
-        document.getElementById('photoInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file && file.type.match('image.*')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    savePhoto(e.target.result);
-                    displayPhotos();
-                };
-                reader.readAsDataURL(file);
-            }
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Get storage reference
+      const storage = firebase.storage();
+      const storageRef = storage.ref();
+
+      // Get database reference
+      const database = firebase.database();
+      const photosRef = database.ref("photos/" + sessionId);
+
+      // Generate QR code pointing to the current page URL with session ID
+      window.onload = function () {
+        const currentUrl =
+          window.location.href.split("?")[0] + "?session=" + sessionId;
+
+        new QRCode(document.getElementById("qrcode"), {
+          text: currentUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H,
         });
 
-        // Save photo to localStorage
-        function savePhoto(photoData) {
-            let photos = JSON.parse(localStorage.getItem('photos') || '[]');
-            photos.unshift({
-                id: Date.now(),
-                data: photoData,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('photos', JSON.stringify(photos));
+        // Check if there's a session parameter in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSession = urlParams.get("session");
+        if (urlSession) {
+          sessionId = urlSession;
+          localStorage.setItem("photoSessionId", sessionId);
+          document.getElementById("sessionId").textContent = sessionId;
         }
 
-        // Load photos from localStorage
-        function loadPhotos() {
-            let photos = JSON.parse(localStorage.getItem('photos') || '[]');
-            displayPhotos(photos);
-        }
+        // Load photos for the current session
+        loadPhotos();
+      };
 
-        // Display photos in the gallery
-        function displayPhotos() {
-            const photos = JSON.parse(localStorage.getItem('photos') || '[]');
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
+      // Display status message
+      function showStatus(message, isError = false) {
+        const statusElement = document.getElementById("statusMessage");
+        statusElement.textContent = message;
+        statusElement.className = isError ? "status error" : "status success";
+        statusElement.style.display = "block";
 
-            photos.forEach(photo => {
-                const photoContainer = document.createElement('div');
-                photoContainer.className = 'photo-container';
-                
-                const img = document.createElement('img');
-                img.src = photo.data;
-                img.className = 'photo';
-                img.alt = 'Uploaded photo';
-                
-                photoContainer.appendChild(img);
-                gallery.appendChild(photoContainer);
+        // Hide after 5 seconds
+        setTimeout(() => {
+          statusElement.style.display = "none";
+        }, 5000);
+      }
+
+      // Handle file uploads
+      document
+        .getElementById("photoInput")
+        .addEventListener("change", function (event) {
+          const file = event.target.files[0];
+          if (file && file.type.match("image.*")) {
+            uploadPhoto(file);
+          }
+        });
+
+      // Upload photo to Firebase
+      function uploadPhoto(file) {
+        showStatus("Uploading photo...");
+
+        // Create a unique filename
+        const fileName =
+          "photo_" +
+          Date.now() +
+          "_" +
+          Math.random().toString(36).substring(2, 10);
+        const photoRef = storageRef.child(`${sessionId}/${fileName}`);
+
+        // Upload the file
+        const uploadTask = photoRef.put(file);
+
+        // Monitor upload progress
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Progress monitoring if needed
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload is ${progress}% done`);
+          },
+          (error) => {
+            // Error handling
+            console.error("Error uploading file:", error);
+            showStatus("Error uploading photo: " + error.message, true);
+          },
+          () => {
+            // Upload completed successfully
+            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+              // Save photo info to the database
+              const newPhotoRef = photosRef.push();
+              newPhotoRef.set({
+                url: downloadURL,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                filename: fileName,
+              });
+
+              showStatus("Photo uploaded successfully!");
+              loadPhotos();
+            });
+          }
+        );
+      }
+
+      // Load photos from Firebase
+      function loadPhotos() {
+        const gallery = document.getElementById("gallery");
+        gallery.innerHTML = '<div class="loading">Loading photos...</div>';
+
+        photosRef
+          .orderByChild("timestamp")
+          .once("value")
+          .then((snapshot) => {
+            gallery.innerHTML = "";
+
+            let hasPhotos = false;
+            const photos = [];
+
+            // Collect all photos first (they come in reverse order)
+            snapshot.forEach((childSnapshot) => {
+              const photoData = childSnapshot.val();
+              photos.push(photoData);
+              hasPhotos = true;
             });
 
-            if (photos.length === 0) {
-                gallery.innerHTML = '<p>No photos uploaded yet. Scan the QR code with your phone and upload some photos!</p>';
+            // Display photos in reverse chronological order (newest first)
+            photos.reverse().forEach((photoData) => {
+              const photoContainer = document.createElement("div");
+              photoContainer.className = "photo-container";
+
+              const img = document.createElement("img");
+              img.src = photoData.url;
+              img.className = "photo";
+              img.alt = "Uploaded photo";
+              img.loading = "lazy";
+
+              photoContainer.appendChild(img);
+              gallery.appendChild(photoContainer);
+            });
+
+            if (!hasPhotos) {
+              gallery.innerHTML =
+                "<p>No photos uploaded yet. Scan the QR code with your phone and upload some photos!</p>";
             }
-        }
+          })
+          .catch((error) => {
+            console.error("Error loading photos:", error);
+            gallery.innerHTML =
+              "<p>Error loading photos. Please try again later.</p>";
+          });
+      }
     </script>
-</body>
+  </body>
 </html>
