@@ -1,0 +1,35 @@
+<!-- templates/upload_success.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Successful</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container success-page">
+      <h1>Upload Successful!</h1>
+
+      <div class="success-message">
+        <p>
+          Your photo has been uploaded successfully and is now visible on the
+          main screen.
+        </p>
+
+        {% if image_url %}
+        <div class="uploaded-image">
+          <img src="{{ image_url }}" alt="Uploaded photo" />
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('upload_file') }}" class="button"
+          >Upload Another Photo</a
+        >
+      </div>
+    </div>
+  </body>
+</html>

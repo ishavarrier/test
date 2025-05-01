@@ -1,0 +1,76 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Photo Upload</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>QR Photo Upload</h1>
+
+      <div class="qr-section">
+        <h2>Scan this QR code with your phone</h2>
+        <div class="qr-code">
+          <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" />
+        </div>
+        <p>Scan to open the upload page on your phone</p>
+      </div>
+
+      <div class="image-section">
+        <h2>Latest Uploaded Photo</h2>
+        <div id="latest-image-container">
+          {% if latest_image %}
+          <img src="{{ latest_image }}" alt="Latest uploaded photo" />
+          {% else %}
+          <p>
+            No photo uploaded yet. Scan the QR code with your phone to upload a
+            photo.
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Poll the server every 2 seconds to check for new images
+      setInterval(function () {
+        fetch("/check-for-new-image")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.image_url) {
+              const container = document.getElementById(
+                "latest-image-container"
+              );
+              // Add a timestamp to the URL to prevent caching
+              const timestamp = new Date().getTime();
+              const imageUrl = data.image_url + "?t=" + timestamp;
+
+              // Check if there's already an image and it's different
+              const existingImg = container.querySelector("img");
+              if (
+                !existingImg ||
+                !existingImg.src.includes(data.image_url.split("?")[0])
+              ) {
+                // Clear the container
+                container.innerHTML = "";
+                // Create new image
+                const img = document.createElement("img");
+                img.src = imageUrl;
+                img.alt = "Latest uploaded photo";
+                container.appendChild(img);
+              }
+            }
+          })
+          .catch((error) =>
+            console.error("Error checking for new images:", error)
+          );
+      }, 2000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+# render.yaml
+services:
+  - type: web
+    name: qr-photo-upload
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0

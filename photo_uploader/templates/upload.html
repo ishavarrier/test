@@ -1,0 +1,61 @@
+<!-- templates/upload.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload a Photo</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container upload-page">
+      <h1>Upload a Photo</h1>
+
+      <form
+        id="upload-form"
+        action="{{ url_for('upload_file') }}"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <div class="form-group">
+          <label for="photo">Take a photo or choose from gallery:</label>
+          <input type="file" id="photo" name="photo" accept="image/*" capture />
+        </div>
+
+        <div class="form-group">
+          <button type="submit">Upload Photo</button>
+        </div>
+      </form>
+
+      <div class="preview-container">
+        <h3>Preview:</h3>
+        <div id="preview"></div>
+      </div>
+    </div>
+
+    <script>
+      // Show preview of selected image
+      document
+        .getElementById("photo")
+        .addEventListener("change", function (event) {
+          const preview = document.getElementById("preview");
+          preview.innerHTML = "";
+
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const img = document.createElement("img");
+              img.src = e.target.result;
+              img.className = "preview-image";
+              preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+    </script>
+  </body>
+</html>
