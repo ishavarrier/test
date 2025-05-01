@@ -1,118 +1,160 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QR Photo Upload</title>
+    <title>Scan to Simulate Drone Upload</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/style.css') }}"
     />
   </head>
-  <body>
-    <div class="container">
-      <h1>QR Photo Upload</h1>
-
-      <div class="qr-section">
-        <h2>Scan this QR code with your phone</h2>
-        <div class="qr-code">
-          <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" />
-        </div>
-        <p>Scan to open the upload page on your phone</p>
-      </div>
-
-      <div class="image-section">
-        <h2>Latest Uploaded Photo</h2>
-        <div id="latest-image-container">
-          {% if latest_image %}
-          <img src="{{ latest_image }}" alt="Latest uploaded photo" />
-          {% else %}
-          <p>
-            No photo uploaded yet. Scan the QR code with your phone to upload a
-            photo.
-          </p>
-          {% endif %}
-        </div>
+  <body
+    style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Lexend', sans-serif;
+      background-color: #f9fff4;
+      color: #2f4f1f;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    "
+  >
+    <div
+      class="qr-section"
+      style="
+        background-color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        border: 3px solid #4d7c0f;
+        box-shadow: 0 6px 16px rgba(77, 124, 15, 0.15);
+        max-width: 500px;
+        width: 90%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      "
+    >
+      <h2
+        style="
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin-bottom: 1rem;
+          color: #4d7c0f;
+        "
+      >
+        Simulated Drone Upload
+      </h2>
+      <p style="font-size: 0.95rem; color: #5a7550; margin-bottom: 1.2rem">
+        Scan this QR code with your phone to simulate a drone capturing and
+        uploading a field photo.
+      </p>
+      <div
+        class="qr-code-container"
+        style="
+          padding: 12px;
+          border: 2px solid #4d7c0f;
+          border-radius: 8px;
+          background-color: #f0f8e8;
+          margin-bottom: 1rem;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <img
+          src="data:image/png;base64,{{ qr_code }}"
+          alt="QR Code"
+          style="width: 300px; height: 300px; display: block"
+        />
       </div>
     </div>
-
-    <script>
-      // Add event listener to the form submission
-      document.addEventListener("DOMContentLoaded", function () {
-        const uploadForm = document.querySelector('form[action="/upload"]');
-        if (uploadForm) {
-          uploadForm.addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Get the file input
-            const fileInput = uploadForm.querySelector('input[type="file"]');
-            if (!fileInput.files || fileInput.files.length === 0) {
-              alert("Please select a file to upload");
-              return;
-            }
-
-            // Create FormData object
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-
-            // Submit form data via fetch API
-            fetch("/upload", {
-              method: "POST",
-              body: formData,
-            })
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error("Network response was not ok");
-                }
-                return response.json();
-              })
-              .then((data) => {
-                // If upload was successful, redirect to upload_success page
-                window.location.href = "/upload-success";
-              })
-              .catch((error) => {
-                console.error("Error uploading file:", error);
-                alert(
-                  "There was a problem uploading your file. Please try again."
-                );
-              });
-          });
-        }
-      });
-
-      // This function still checks for new images on the current page
-      // and will run until the redirect happens
-      function checkForNewImages() {
-        fetch("/check-for-new-image")
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.image_url) {
-              const container =
-                document.getElementById("latest-field-image").parentNode;
-              // Add a timestamp to the URL to prevent caching
-              const timestamp = new Date().getTime();
-              const imageUrl = data.image_url + "?t=" + timestamp;
-
-              // Check if there's already an image and it's different
-              const existingImg = document.getElementById("latest-field-image");
-              if (
-                !existingImg ||
-                !existingImg.src.includes(data.image_url.split("?")[0])
-              ) {
-                // Update the image source
-                existingImg.src = imageUrl;
-                existingImg.alt = "Latest Field Image";
-              }
-            }
-          })
-          .catch((error) =>
-            console.error("Error checking for new images:", error)
-          );
-      }
-
-      // Start checking for new images
-      setInterval(checkForNewImages, 2000);
-    </script>
+    <button
+      class="get-started-btn"
+      style="
+        position: relative;
+        margin-top: 50px;
+        padding: 15px 40px;
+        font-size: 2rem;
+        font-family: 'Lexend', sans-serif;
+        font-weight: bold;
+        background-color: #4d8a3d;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        letter-spacing: 3px;
+        transition: all 0.3s ease;
+        z-index: 3;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      "
+      id="get-started-btn"
+    >
+      Analyze Drone Imagery
+    </button>
   </body>
+
+  <script>
+    // Add event listener to the form submission
+    const getStartedBtn = document.getElementById("get-started-btn");
+    getStartedBtn.addEventListener("click", function () {
+      // Link to the QR code page (qr_upload.html)
+      window.location.href = "/upload-success";
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+      const uploadForm = document.querySelector('form[action="/upload"]');
+      if (uploadForm) {
+        uploadForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const fileInput = uploadForm.querySelector('input[type="file"]');
+          if (!fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a file to upload");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+
+          fetch("/upload", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error("Upload failed");
+              return response.json();
+            })
+            .then(() => {
+              window.location.href = "/upload-success";
+            })
+            .catch((error) => {
+              console.error("Upload error:", error);
+              alert("There was a problem uploading your file.");
+            });
+        });
+      }
+    });
+
+    function checkForNewImages() {
+      fetch("/check-for-new-image")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.image_url) {
+            const img = document.getElementById("latest-field-image");
+            const timestamp = new Date().getTime();
+            if (img && !img.src.includes(data.image_url.split("?")[0])) {
+              img.src = data.image_url + "?t=" + timestamp;
+              img.alt = "Latest Field Image";
+            }
+          }
+        })
+        .catch((err) => console.error("Error checking for new images:", err));
+    }
+
+    setInterval(checkForNewImages, 2000);
+  </script>
 </html>

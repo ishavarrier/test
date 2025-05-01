@@ -272,6 +272,7 @@ main.dashboard {
 
 .uploaded-image-container {
   width: 100%;
+  max-height: 500px;
   border-radius: 8px;
   overflow: hidden;
 }
