@@ -51,7 +51,7 @@ def qr_upload():
         box_size=10,
         border=4,
     )
-    upload_url = request.host_url + "upload"
+    upload_url = request.host_url + "/upload"
     qr.add_data(upload_url)
     qr.make(fit=True)
 
