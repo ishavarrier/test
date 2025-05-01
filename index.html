@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Photo Uploader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .qr-section {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        #qrcode {
+            margin: 20px auto;
+        }
+        
+        .upload-section {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        #photoInput {
+            display: none;
+        }
+        
+        .upload-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .photo-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .photo {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+    <!-- Include the QR code library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Photo Uploader</h1>
+        
+        <div class="qr-section">
+            <h2>Scan this QR code</h2>
+            <p>Use your phone to scan this QR code to access this page and upload photos</p>
+            <div id="qrcode"></div>
+        </div>
+        
+        <div class="upload-section">
+            <h2>Upload a Photo</h2>
+            <input type="file" id="photoInput" accept="image/*" capture="camera">
+            <button class="upload-btn" onclick="document.getElementById('photoInput').click()">
+                Select Photo
+            </button>
+        </div>
+        
+        <h2>Photo Gallery</h2>
+        <div id="gallery" class="gallery">
+            <!-- Photos will be added here -->
+        </div>
+    </div>
+
+    <script>
+        // Generate QR code pointing to the current page URL
+        window.onload = function() {
+            new QRCode(document.getElementById("qrcode"), {
+                text: window.location.href,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Load any saved photos from localStorage
+            loadPhotos();
+        };
+
+        // Handle file uploads
+        document.getElementById('photoInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    savePhoto(e.target.result);
+                    displayPhotos();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Save photo to localStorage
+        function savePhoto(photoData) {
+            let photos = JSON.parse(localStorage.getItem('photos') || '[]');
+            photos.unshift({
+                id: Date.now(),
+                data: photoData,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('photos', JSON.stringify(photos));
+        }
+
+        // Load photos from localStorage
+        function loadPhotos() {
+            let photos = JSON.parse(localStorage.getItem('photos') || '[]');
+            displayPhotos(photos);
+        }
+
+        // Display photos in the gallery
+        function displayPhotos() {
+            const photos = JSON.parse(localStorage.getItem('photos') || '[]');
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+
+            photos.forEach(photo => {
+                const photoContainer = document.createElement('div');
+                photoContainer.className = 'photo-container';
+                
+                const img = document.createElement('img');
+                img.src = photo.data;
+                img.className = 'photo';
+                img.alt = 'Uploaded photo';
+                
+                photoContainer.appendChild(img);
+                gallery.appendChild(photoContainer);
+            });
+
+            if (photos.length === 0) {
+                gallery.innerHTML = '<p>No photos uploaded yet. Scan the QR code with your phone and upload some photos!</p>';
+            }
+        }
+    </script>
+</body>
+</html>
