@@ -319,3 +319,38 @@ main.dashboard {
       "field";
   }
 }
+
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+#latest-field-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* so it doesn't block clicks on the image */
+}
+
+.grid-cell {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 4px;
+  box-sizing: border-box;
+}

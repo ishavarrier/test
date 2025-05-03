@@ -98,12 +98,19 @@
       <section class="uploaded-image-section">
         <h2>Latest Field Image</h2>
         <div class="uploaded-image-container">
-          <img
-            id="latest-field-image"
-            src="{{ image_url }}"
-            alt="Latest Field Image"
-            onerror="this.onerror=null; this.src='{{ url_for('static', filename='placeholder-field.jpg') }}';"
-          />
+          <div class="image-wrapper">
+            <img
+              id="latest-field-image"
+              src="{{ image_url }}"
+              alt="Latest Field Image"
+              onerror="this.onerror=null; this.src='{{ url_for('static', filename='static/images/welcome_drone.png') }}';"
+            />
+            <div class="grid-overlay">
+              {% for label in labels %}
+              <div class="grid-cell">{{ label }}</div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
       </section>
 

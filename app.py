@@ -105,7 +105,9 @@ def upload_file():
 @app.route('/upload-success')
 def upload_success():
     """Show a success page after upload"""
-    return render_template('upload_success.html', image_url=latest_image)
+    labels = [f"{chr(65 + row)}{col + 1}" for row in range(4) for col in range(4)]
+
+    return render_template('upload_success.html', image_url=latest_image,labels=labels )
 
 @app.route('/check-for-new-image')
 def check_for_new_image():
